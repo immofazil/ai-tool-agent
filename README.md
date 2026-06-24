@@ -94,4 +94,21 @@ Type different prompts manually into the loop to watch how the agent autonomousl
 * **Sequential Multi-Tool Path:** Entering a complex prompt like: *“Check the weather in Dubai, multiply the temperature value by 2, and then search my notes for that specific calculated number.”* Watch the structured JSON logs cycle through three separate tools sequentially (`get_weather` -> `calculate` -> `search_notes`) as it builds its final answer from the previous step's data.
 * **Error Handling & Backoff Path:** Try entering inputs with missing or messy arguments. Instead of crashing, the script uses robust error handling paired with an exponential backoff retry mechanism to gracefully catch API drops or bad parameters, safely recording the trace details inside your JSON log objects.
 
+
+## Running the Conversational Multi-Tool Agent (Part 3)
+
+Once your dependencies are fully installed and your `.env` variables are completely loaded, you can run the conversational version of the agent. This script (`src/app-3.py`) builds directly on top of the previous multi-tool agent by introducing a persistent chat loop, structured message history tracking, and an automated history-length guardrail to prevent context explosion.
+
+To initiate the conversational manual testing environment, run:
+
+```bash
+python src/app-3.py
+
 ```
+
+### Observing Multi-Turn Conversational Memory
+
+Type different prompts manually into the loop to watch how the agent maintains memory across multiple turns, tracks external tool outputs, and utilizes its automated history guard while keeping the structured JSON logging and retry backoffs active:
+
+* **Conversational History & Tool Path:** Try running a multi-turn conversation that requires the agent to remember context from earlier steps. For example, ask for the weather in Dubai, perform a calculation on that data, ask it to check your personal notes for safety thresholds, and then ask it to recall the original temperature from the beginning of the chat. The agent will successfully reference the rolling history script to answer accurately.
+* **History Guard & Context Trimming:** As your conversation runs longer, watch the underlying system automatically enforce the history-length guard. Instead of allowing the text history to balloon and blow past the model's hard reading limit, the code will safely slice out the oldest messages to keep token costs low and prevent the application from crashing.
