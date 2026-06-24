@@ -1,6 +1,4 @@
-Here is a complete, production-ready `README.md` file designed specifically for your autonomous tool agent repository. It outlines the project's purpose, details the file structure, and provides clear onboarding instructions for setting up the environment variables and obtaining an API key.
 
-```markdown
 # Autonomous Single-Tool AI Agent
 
 An intent-driven, autonomous AI agent built with Python and powered by the `gemini-2.5-flash` model. Unlike traditional hardcoded pipelines where software runs in a fixed, predictable sequence, this system demonstrates a true agentic loop. It evaluates user intent dynamically and decides whether to route requests to a specialized local tool or handle the conversation entirely using its internal knowledge.
@@ -77,6 +75,23 @@ Type different prompts manually into the loop to watch how the agent dynamically
 * **Tool Execution Path:** Entering `What is the weather in Dubai right now?` prompts the model to return a structured tool request, firing the local backend executor.
 * **Direct Path:** Entering `What is SDLC?` causes the model to recognize that the weather tool is irrelevant, prompting it to bypass execution completely and reply directly using its native knowledge.
 
+---
+
+## Running the Multi-Tool Agent (Part 2)
+
+Once your dependencies are fully installed and your `.env` variables are completely loaded, you can run the extended version of the agent. This script (`src/app-2.py`) expands the agent's capabilities to support three distinct tools (`get_weather`, `calculate`, and `search_notes`) running inside a continuous, multi-step execution loop.
+
+To initiate the multi-tool manual testing environment, run:
+```bash
+python src/app-2.py
+
 ```
+
+### Observing Multi-Step Intent Decisions
+
+Type different prompts manually into the loop to watch how the agent autonomously chains multiple actions together or handles errors through production-ready JSON logs:
+
+* **Sequential Multi-Tool Path:** Entering a complex prompt like: *“Check the weather in Dubai, multiply the temperature value by 2, and then search my notes for that specific calculated number.”* Watch the structured JSON logs cycle through three separate tools sequentially (`get_weather` -> `calculate` -> `search_notes`) as it builds its final answer from the previous step's data.
+* **Error Handling & Backoff Path:** Try entering inputs with missing or messy arguments. Instead of crashing, the script uses robust error handling paired with an exponential backoff retry mechanism to gracefully catch API drops or bad parameters, safely recording the trace details inside your JSON log objects.
 
 ```
