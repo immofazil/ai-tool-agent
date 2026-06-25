@@ -26,3 +26,16 @@ To keep everything clean, the chat history follows a strict script format divide
 The catch is that pasting the history over and over creates the context window problem. As the chat runs longer, the text balloons, which jacks up token costs and eventually hits the hard reading limit of the model. To stop the system from crashing, code uses quick fixes like truncation to slice out the oldest messages and free up space, or summarization to summarize the old chats into a quick, small recap.
 
 Creating a great AI agent is all about balancing short-term memory and long-term memory. Short-term memory is just the active chat history script that keeps track of the immediate conversation happening right now, but it gets wiped the moment the session ends. Long-term memory is way different because it hooks into external databases to actually save important details, user settings, and past facts permanently. This means the system can completely close out a chat, start a brand-new session days later, and pull those saved details out of the database so the agent feels consistent and actually remembers information over time.
+
+
+
+
+# Day 4 - Reliability & Guardrails: Make Your Agent Production-Minded
+
+When you give an AI agent the freedom to choose its own tools, things can get messy fast. One of the biggest headaches is an infinite loop, where the agent gets stuck in a tight circle, calling the exact same function over and over without ever finishing the task. It can also get confused by vague descriptions and pick the completely wrong tool, or straight up hallucinate fake arguments that your code doesn't even accept. All of this accidental looping happens in seconds and starts racking up unnecessary API bills.
+
+To keep the agent from going wild, you have to build in some digital brakes. First, you need a max step limit, which is basically a hard ceiling that forces the loop to shut down if the agent takes too many turns. You also need to validate inputs by checking the AI's data types before your actual python functions run so bad data doesn't crash the app. Finally, adding timeouts prevents the script from hanging forever if an external database or server suddenly goes offline.
+
+Because an agent takes a brand new path with every question, keeping detailed logs of its full decision trace is a must. If the agent gives you a weird final answer, you can't just look at the final error message to fix it. You need a complete flight recorder that shows exactly what the model was thinking, which tool it picked, and the data it got back at every single step. Without that full trace, debugging an agent is pure guesswork.
+
+If you don't track these loops, a runaway agent becomes a massive financial and operational risk. A bad loop running wild overnight can easily rack up a huge cloud bill before you even wake up. Even worse, if you give an unmonitored agent access to real files or databases, it could accidentally overwrite or corrupt important data while trying to solve a problem its own way. We have to treat agents like powerful tools that always need strict safety boundaries and clear budgets.
