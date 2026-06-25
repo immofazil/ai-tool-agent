@@ -94,6 +94,7 @@ Type different prompts manually into the loop to watch how the agent autonomousl
 * **Sequential Multi-Tool Path:** Entering a complex prompt like: *“Check the weather in Dubai, multiply the temperature value by 2, and then search my notes for that specific calculated number.”* Watch the structured JSON logs cycle through three separate tools sequentially (`get_weather` -> `calculate` -> `search_notes`) as it builds its final answer from the previous step's data.
 * **Error Handling & Backoff Path:** Try entering inputs with missing or messy arguments. Instead of crashing, the script uses robust error handling paired with an exponential backoff retry mechanism to gracefully catch API drops or bad parameters, safely recording the trace details inside your JSON log objects.
 
+---
 
 ## Running the Conversational Multi-Tool Agent (Part 3)
 
@@ -112,3 +113,23 @@ Type different prompts manually into the loop to watch how the agent maintains m
 
 * **Conversational History & Tool Path:** Try running a multi-turn conversation that requires the agent to remember context from earlier steps. For example, ask for the weather in Dubai, perform a calculation on that data, ask it to check your personal notes for safety thresholds, and then ask it to recall the original temperature from the beginning of the chat. The agent will successfully reference the rolling history script to answer accurately.
 * **History Guard & Context Trimming:** As your conversation runs longer, watch the underlying system automatically enforce the history-length guard. Instead of allowing the text history to balloon and blow past the model's hard reading limit, the code will safely slice out the oldest messages to keep token costs low and prevent the application from crashing.
+
+---
+
+Once your dependencies are fully installed and your `.env` variables are completely loaded, you can run the hardened version of the agent. This script (`src/app-4.py`) builds directly on top of the previous conversational multi-tool agent by introducing strict safety guardrails, pre-execution input validation, and an explicit iteration ceiling to eliminate runaway loops and secure the core application runtime.
+
+To initiate the hardened manual testing environment, run:
+
+```bash
+python src/app-4.py
+
+```
+
+### Observing Hardened Safety Guardrails & Failure Paths
+
+Type different prompts manually into the loop to observe how the newly fortified architecture intercepts errors, traces operational sequences, and safely shuts down malicious or broken loops while keeping the structured JSON logging active:
+
+* **Max-Iteration Limit Guardrail:** Try lowering `max_iterations` to 1 in your script and giving the agent a multi-step prompt that requires chaining tools together (e.g., asking to fetch weather, calculate a value, and search notes). You will watch the custom loop limit slam the door shut mid-run, instantly cutting off the agent to protect you from runaway API bills and infinite loops.
+* **Pre-Execution Input Validation & Fallbacks:** Try triggering an edge-case error like forcing a division by zero or calling a tool with completely blank parameters. Instead of letting the underlying Python functions crash the entire program, the script will gracefully intercept the bad arguments, document the validation fault in the logs, and return a clean, user-friendly failure message rather than a massive, ugly raw stack trace.
+* **Traceable Agent Sequence Logs:** Watch your terminal window closely during a tool run to see a completely clear "flight recorder" trace in action. Every single routing choice, tool call, and back-and-forth decision is tagged with structured sequence steps (e.g., Trace Step 1, Trace Step 2) for bulletproof system observability and easy debugging.
+* **Network Resilience & Backoff Recovery:** Try pressing enter on a normal prompt and immediately disconnecting your Wi-Fi for a couple of seconds. The exponential backoff retry mechanism will seamlessly step in, catch the temporary connection drop, print out clear warning traces, and finish the job the exact moment your internet kicks back on without dropping the execution context.
