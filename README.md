@@ -96,7 +96,7 @@ Type different prompts manually into the loop to watch how the agent autonomousl
 
 ---
 
-## Running the Conversational Multi-Tool Agent (Part 3)
+## Running the Hardened Multi-Tool Agent (Part 3)
 
 Once your dependencies are fully installed and your `.env` variables are completely loaded, you can run the conversational version of the agent. This script (`src/app-3.py`) builds directly on top of the previous multi-tool agent by introducing a persistent chat loop, structured message history tracking, and an automated history-length guardrail to prevent context explosion.
 
@@ -115,6 +115,8 @@ Type different prompts manually into the loop to watch how the agent maintains m
 * **History Guard & Context Trimming:** As your conversation runs longer, watch the underlying system automatically enforce the history-length guard. Instead of allowing the text history to balloon and blow past the model's hard reading limit, the code will safely slice out the oldest messages to keep token costs low and prevent the application from crashing.
 
 ---
+
+## Running the Conversational Multi-Tool Agent (Part 4)
 
 Once your dependencies are fully installed and your `.env` variables are completely loaded, you can run the hardened version of the agent. This script (`src/app-4.py`) builds directly on top of the previous conversational multi-tool agent by introducing strict safety guardrails, pre-execution input validation, and an explicit iteration ceiling to eliminate runaway loops and secure the core application runtime.
 
