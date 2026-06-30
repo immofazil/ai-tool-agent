@@ -42,6 +42,9 @@ Create a file named `.env` in the root directory (`ai-tool-agent/`) and insert y
 # Gemini API Configuration Secrets
 GEMINI_API_KEY=your_actual_api_key_here
 
+# Logging Severity Filter Threshold (DEBUG, INFO, WARNING, ERROR)
+LOG_LEVEL=INFO
+
 ```
 
 ---
@@ -135,3 +138,38 @@ Type different prompts manually into the loop to observe how the newly fortified
 * **Pre-Execution Input Validation & Fallbacks:** Try triggering an edge-case error like forcing a division by zero or calling a tool with completely blank parameters. Instead of letting the underlying Python functions crash the entire program, the script will gracefully intercept the bad arguments, document the validation fault in the logs, and return a clean, user-friendly failure message rather than a massive, ugly raw stack trace.
 * **Traceable Agent Sequence Logs:** Watch your terminal window closely during a tool run to see a completely clear "flight recorder" trace in action. Every single routing choice, tool call, and back-and-forth decision is tagged with structured sequence steps (e.g., Trace Step 1, Trace Step 2) for bulletproof system observability and easy debugging.
 * **Network Resilience & Backoff Recovery:** Try pressing enter on a normal prompt and immediately disconnecting your Wi-Fi for a couple of seconds. The exponential backoff retry mechanism will seamlessly step in, catch the temporary connection drop, print out clear warning traces, and finish the job the exact moment your internet kicks back on without dropping the execution context.
+
+---
+
+## Running the MCP Client (Week 5 — Part 1)
+
+Once your dependencies are fully installed and your `.env` variables are completely loaded, you can run the decoupled, protocol-based version of the agent. This script (`src/mcp_client.py`) implements the **Model Context Protocol (MCP)** to completely separate the main agent orchestration loop from the actual tool execution code.
+
+Instead of hardcoding tools directly inside the script, the application acts as an independent host client that connects to an external, sandboxed server over a secure standard input/output (`stdio`) communication pipe.
+
+### 1. Install Protocol Dependencies
+
+To guarantee stable, bidirectional background communication on Windows without standard stream buffering issues, this project uses the official Python-native fetch server package. Install the protocol SDK extensions using `pip`:
+
+```bash
+pip install mcp mcp-server-fetch
+
+```
+
+### 2. Launch the Client Runtime
+
+To initialize the protocol communication loop and trigger the automated discovery pipeline, run:
+
+```bash
+python src/mcp_client.py
+
+```
+
+### Observing Decoupled Protocol Cycles
+
+Monitor your terminal window closely to observe how the protocol abstracts capabilities away from the core agent engine through structured JSON logs:
+
+* **Automated Handshake Sequence:** The client uses your local Python interpreter to spin up the external fetch server module as an isolated background subprocess, instantly establishing a bidirectional communication stream.
+* **Dynamic Tool Discovery:** The client queries the external server to dynamically inspect its capabilities on the fly. The server responds with its structured JSON schemas, exposing the `["fetch"]` tool definition without it ever being written into your client codebase.
+* **Sandboxed Tool Call & Resolution:** The client dispatches a live data extraction request targeting `https://example.com`. The download happens entirely inside the isolated background server process, which safely reads the web content and passes the text payload back across the pipe to the client.
+* **Recursive Error Unwrapping:** If a background asynchronous task fails, a custom diagnostic routine automatically intercepts the failure and recursively unwraps Python's nested `ExceptionGroup` layers, forcing the true root-cause error string to print directly into your console logs.

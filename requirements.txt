@@ -1,2 +1,4 @@
 google-generativeai
 python-dotenv
+mcp
+mcp-server-fetch
