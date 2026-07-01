@@ -173,3 +173,43 @@ Monitor your terminal window closely to observe how the protocol abstracts capab
 * **Dynamic Tool Discovery:** The client queries the external server to dynamically inspect its capabilities on the fly. The server responds with its structured JSON schemas, exposing the `["fetch"]` tool definition without it ever being written into your client codebase.
 * **Sandboxed Tool Call & Resolution:** The client dispatches a live data extraction request targeting `https://example.com`. The download happens entirely inside the isolated background server process, which safely reads the web content and passes the text payload back across the pipe to the client.
 * **Recursive Error Unwrapping:** If a background asynchronous task fails, a custom diagnostic routine automatically intercepts the failure and recursively unwraps Python's nested `ExceptionGroup` layers, forcing the true root-cause error string to print directly into your console logs.
+
+---
+
+
+## Running the Custom MCP Server (Week 5 — Part 2)
+
+Once your dependencies are fully installed, you can run your own custom Model Context Protocol (MCP) server. This script (`src/mcp_server.py`) implements a standalone tool server using the official Python MCP SDK, turning your core calculation and note-searching logic into standard, shareable infrastructure.
+
+Instead of embedding tools directly inside a specific AI client application, this server sits independently and exposes its functional capabilities over a standard input/output (`stdio`) communication channel to any protocol-compliant host client.
+
+### 1. Install Server Dependencies
+
+To run the custom server host framework, ensure the standard protocol extensions are updated inside your local environment via `pip`:
+
+```bash
+pip install mcp
+
+```
+
+### 2. Launch via the MCP Inspector
+
+Because this server relies entirely on standard streams (`stdio`), running it directly in a standard console will simply open an active listening stream. To automatically initialize the proxy environment and boot your python script directly inside the test engine, launch it with this command:
+
+```bash
+npx @modelcontextprotocol/inspector python src/mcp_server.py
+
+```
+
+Once the terminal initializes the session proxy, open the printed mnemonic web link (typically `http://localhost:6274`) in your browser. The connection panel will pre-fill, and hitting **Connect** will immediately bridge your live Python process to the visual interface.
+
+---
+
+## Observing Server Lifecycle and Guardrail Events
+
+Monitor the browser dashboard and your terminal engine window to verify how the protocol handles execution routing through your server logic:
+
+* **Automated Blueprint Exposure:** Clicking **List Tools** inside the inspector triggers the protocol to parse your Python docstrings and variable type hints, automatically building strict JSON schemas for `calculate` and `search_notes` without manual boilerplate coding.
+* **Absolute File System Resolution:** Running the `search_notes` tool dynamically searches your local `notes.txt` file. The server logic uses an automatic directory look-ahead sequence to resolve the exact absolute file location, ensuring data is found regardless of where the client process is running.
+* **Pre-Execution Guardrail Isolation:** Trying to input illegal character streams (like code injection attacks, alphabet letters inside math functions, or malformed formatting text) triggers your internal security checks. The script intercepts the validation failure cleanly and passes back a structured error JSON, blocking the attack vector completely without crashing the server process.
+* **Stream-Safe Structured Logging:** Every incoming execution request, functional argument property, and final operational status is serialized into a clean JSON string. Because stdout is reserved for protocol data exchange, all structured logs are safely routed directly to standard error (`sys.stderr`), ensuring total system observability without breaking the communication pipe.
