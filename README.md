@@ -213,3 +213,69 @@ Monitor the browser dashboard and your terminal engine window to verify how the 
 * **Absolute File System Resolution:** Running the `search_notes` tool dynamically searches your local `notes.txt` file. The server logic uses an automatic directory look-ahead sequence to resolve the exact absolute file location, ensuring data is found regardless of where the client process is running.
 * **Pre-Execution Guardrail Isolation:** Trying to input illegal character streams (like code injection attacks, alphabet letters inside math functions, or malformed formatting text) triggers your internal security checks. The script intercepts the validation failure cleanly and passes back a structured error JSON, blocking the attack vector completely without crashing the server process.
 * **Stream-Safe Structured Logging:** Every incoming execution request, functional argument property, and final operational status is serialized into a clean JSON string. Because stdout is reserved for protocol data exchange, all structured logs are safely routed directly to standard error (`sys.stderr`), ensuring total system observability without breaking the communication pipe.
+
+---
+
+Here is the corrected, humanized `README.md` formatted to match your project's layout exactly, with the `.env` section removed and clear instructions on how to run both files simultaneously.
+
+---
+
+# MCP Agent Refactor & Orchestration (Week 5 — Part 3)
+
+## Project Overview
+
+This phase marks the successful refactoring of our Week 4 autonomous AI agent from a monolithic tool setup into a decoupled, client-server architecture powered by the **Model Context Protocol (MCP)**.
+
+Instead of hardcoding functions locally within the core agent code, a brand new standalone tools server—`src/new_server.py`—was implemented to host application capabilities. On startup, the refactored agent (`src/mcp_agent.py`) establishes a network connection via a local Server-Sent Events (SSE) stream, dynamically discovers all available capabilities from the running server, and securely routes execution traffic down the protocol pipe.
+
+---
+
+## Architectural Workflow
+
+```
+[ User Prompt ] ──> [ src/mcp_agent.py ] ──( Handshake/Discovery )──> [ src/new_server.py ]
+                           │                                                  │
+                    ( Passes Schemas )                                  ( Hosts Tools )
+                           ▼                                                  ▲
+                  [ Gemini 2.5 Flash ] ──( Selection )──> [ Routes Request via RPC ]
+
+```
+
+1. **Discovery:** The agent connects to the live MCP tool server on boot, listing all registered tools dynamically.
+2. **Schema Mapping:** Raw JSON-RPC tool declarations are cleanly mapped into schema definitions the model expects (automatically stripping out problematic metadata attributes such as `"title"` keywords).
+3. **Execution Loop:** When a tool call is requested by the model, the agent intercepts the payload, translates it into an MCP execution parameter, calls the server, and returns the result to the chat session context.
+
+---
+
+## Technical Enhancements & Guardrails
+
+* **Decoupled Architecture:** Switching from local streams to a local network service (SSE) prevents Windows terminal pipe collisions and keeps background tasks stable.
+* **Week 4 Safety Limits:** Built-in loop recursion limits (`max_iterations=5`), robust structural input argument validation, and full JSON-formatted agent log traces remain highly enforced.
+* **Resilient Exception Handlers:** Suppresses noisy library deprecation warnings and features an isolated crash-interception layer. If the server is offline or drops connection, the client gracefully falls back to a custom error display rather than leaking raw thread traces.
+
+
+---
+
+## How To Run the System
+
+To execute the system successfully, you must run both components simultaneously in separate terminal windows:
+
+### Step 1: Start the MCP Server
+
+Open your first terminal window and launch the tool backend:
+
+```bash
+python src/new_server.py
+
+```
+
+*Leave this terminal open and running so it can listen for network traffic.*
+
+### Step 2: Start the MCP Agent Client
+
+Open a second terminal window and execute the main agent loop:
+
+```bash
+python src/mcp_agent.py
+
+```
