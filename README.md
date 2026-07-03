@@ -279,3 +279,111 @@ Open a second terminal window and execute the main agent loop:
 python src/mcp_agent.py
 
 ```
+
+---
+
+
+# MCP Agent Refactor & Orchestration (Week 5 — Part 4)
+
+## Project Overview
+
+This phase marks the successful transition of our autonomous AI agent into a production-ready, cloud-callable service by wrapping our Model Context Protocol (MCP) orchestrator inside a highly stable FastAPI web application.
+
+Instead of trapping the agent inside an isolated terminal loop, it now lives behind a decoupled HTTP API. When a request is made, a custom asynchronous lifecycle application manager seamlessly handles starting the standalone backend tools server (`src/mcp_server.py`) as a sub-process, manages dynamic JSON-RPC schema normalization for the Gemini 2.5 Flash model, and routes execution traffic safely down the line.
+
+---
+
+## Technical Enhancements & Guardrails
+
+* **Exposed Web Service Layer:** Shifting the system from a localized console prompt loop into a callable network endpoint enables language-agnostic integration across web dashboards or secondary microservices.
+* **Resilient Data Interception:** Added custom Pydantic models alongside global exception middleware. Input failures are intercepted automatically, returning a standardized JSON body containing error details instead of crashing the process or throwing chaotic terminal tracebacks.
+* **API Key Obfuscation:** Configured an asynchronous JSON log formatter to map runtime connection tracking metrics to the system output console while dynamically redacting sensitive environmental variables and authentication tokens.
+
+---
+
+## Endpoint Contract
+
+### POST `/chat`
+
+Submits a user prompt to the agent pipeline along with a tracking identifier to maintain multi-turn context memory.
+
+#### Example Request
+
+```json
+{
+  "message": "What is 41 * 2?",
+  "conversation_id": "user_123"
+}
+
+```
+
+#### Example Response (Success Case)
+
+```json
+{
+  "answer": "41 * 2 is 82.",
+  "status": "success",
+  "trace": [
+    "Invoked tool 'calculate' with args: {'expression': '41 * 2'}"
+  ]
+}
+
+```
+
+#### Example Response (Handled Error Case)
+
+```json
+{
+  "error": "Malformed request. 'message' and 'conversation_id' are required strings.",
+  "status": "failed"
+}
+
+```
+
+---
+
+## Documented Deliverables
+
+### Image 1: Handled Input Error Case
+
+Refer to the file named `image_049ef1.png` verbatim.
+
+> **Description:** A documented malformed request test demonstrating clean, server-side interception that outputs a clear validation payload message and a failed status without any red PowerShell terminal error traces.
+
+### Image 2: Happy Path (Single-Turn Run)
+
+Refer to the file named `image_049f0f.png` verbatim.
+
+> **Description:** A documented successful single-turn run showcasing a normal API endpoint response containing the computed answer, execution success status, and the underlying MCP server tool invocation trace.
+
+### Image 3: Happy Path (Multi-Turn Run)
+
+Refer to the file named `image_049f4f.png` verbatim.
+
+> **Description:** A documented successful multi-turn conversation run under the same session ID showing full conversational memory retention, where the model successfully references the previous solution to perform a follow-up calculation.
+
+---
+
+## How To Run the System
+
+To execute the system successfully, you only need to run a single unified command. The API gateway automatically manages spawning the background MCP tool worker processes for you.
+
+### Step 1: Install Dependencies
+
+Ensure you have the required web routing tools configured in your local environment workspace:
+
+```bash
+pip install fastapi uvicorn pydantic
+
+```
+
+### Step 2: Start the Service API Gateway
+
+Launch the application server directly using the Python module executor flag:
+
+```bash
+python -m uvicorn src.api:app --host 0.0.0.0 --port 8000
+
+```
+
+Leave this terminal window open. The server will boot the tools backend instantly and begin listening for incoming client requests on port 8000.
