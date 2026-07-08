@@ -339,29 +339,6 @@ Submits a user prompt to the agent pipeline along with a tracking identifier to 
 }
 
 ```
-
----
-
-## Documented Deliverables
-
-### Image 1: Handled Input Error Case
-
-Refer to the file named `image_049ef1.png` verbatim.
-
-> **Description:** A documented malformed request test demonstrating clean, server-side interception that outputs a clear validation payload message and a failed status without any red PowerShell terminal error traces.
-
-### Image 2: Happy Path (Single-Turn Run)
-
-Refer to the file named `image_049f0f.png` verbatim.
-
-> **Description:** A documented successful single-turn run showcasing a normal API endpoint response containing the computed answer, execution success status, and the underlying MCP server tool invocation trace.
-
-### Image 3: Happy Path (Multi-Turn Run)
-
-Refer to the file named `image_049f4f.png` verbatim.
-
-> **Description:** A documented successful multi-turn conversation run under the same session ID showing full conversational memory retention, where the model successfully references the previous solution to perform a follow-up calculation.
-
 ---
 
 ## How To Run the System
@@ -387,3 +364,109 @@ python -m uvicorn src.api:app --host 0.0.0.0 --port 8000
 ```
 
 Leave this terminal window open. The server will boot the tools backend instantly and begin listening for incoming client requests on port 8000.
+
+---
+
+# API Security and Authentication (Week 6 - Part 1)
+
+## Project Overview
+
+This phase marks the successful hardening of our autonomous AI agent gateway by introducing a robust security layer to our FastAPI web application. Building directly on top of our previous architecture, this upgraded functionality lives inside a brand new file called `src/secure_api.py` to keep our original code perfectly intact.
+
+Instead of leaving our endpoints wide open to the public web where anyone could drain our API budget or sneak a peek at private data, the system now sits behind a strict authentication barrier. Every incoming network request is verified on the fly, ensuring that only authorized callers can interact with the agent pipeline and that user conversation data is completely sandboxed.
+
+---
+
+## Technical Enhancements & Guardrails
+
+* **Token Based Authentication Gatekeeper:** Implemented FastAPI's native HTTPBearer scheme to intercept all incoming traffic, validating bearer tokens against a verified list of user identities before allowing requests to reach the core agent loop.
+* **User Scoped Memory Vault:** Completely refactored the conversation dictionary into a deeply nested structure isolated by user ID. This ensures absolute data privacy, making it physically impossible for User A to read or guess the history of User B.
+* **PowerShell Error Tamer:** Built a custom exception handler that captures missing or invalid token failures internally. It overrides default error handling to return a clean, structured JSON payload, preventing client terminals from throwing massive blocks of messy red exception text.
+* **Secure Telemetry Redaction:** Formatted our structured JSON logs to track authentication milestones smoothly while completely redacting actual secret tokens and environmental variables from the console output.
+
+---
+
+## Endpoint Contract
+
+### POST `/chat`
+
+Submits a user prompt to the isolated agent pipeline. This endpoint is fully protected and requires a valid security token passed inside the network header.
+
+#### Required Header
+
+```http
+Authorization: Bearer super_secret_token_A
+
+```
+
+#### Example Request
+
+```json
+{
+  "message": "Hello agent!",
+  "conversation_id": "test_chat"
+}
+
+```
+
+#### Example Response (Success Case)
+
+```json
+{
+  "answer": "Hello user_A, I securely received your message: Hello agent!",
+  "status": "success",
+  "trace": [
+    "Invoked secure agent pipeline"
+  ]
+}
+
+```
+
+#### Example Response (Handled Error Case)
+
+```json
+{
+  "error": "Not authenticated. Missing or invalid Authorization header.",
+  "status": "failed"
+}
+
+```
+
+---
+
+## How To Run the System
+
+To execute the secured system successfully, run the server using our new dedicated security entry point. The gateway will instantly spin up and manage all background protocol processes for you.
+
+### Step 1: Install Dependencies
+
+Ensure you have the required web routing and security tools configured in your local environment workspace:
+
+```bash
+pip install fastapi uvicorn pydantic
+
+```
+
+### Step 2: Start the Secure Service API Gateway
+
+Launch the application server directly using the Python module executor flag targeting our new security script:
+
+```bash
+python -m uvicorn src.secure_api:app --host 0.0.0.0 --port 8000
+
+```
+
+Leave this terminal window open. The server will boot instantly, activate its custom exception handlers, and begin listening for incoming authorized client requests on port 8000.
+
+### Step 3: Send Requests from a Second Terminal
+
+Because the API server must remain actively running in your first terminal window to listen for incoming traffic, you need to open a brand new, completely separate terminal window to execute your testing or client commands.
+
+Once your second terminal window is open, you can send authorized requests to the running gateway using PowerShell or curl:
+
+```powershell
+Invoke-RestMethod -Uri "http://localhost:8000/chat" -Method Post -Headers @{Authorization="Bearer super_secret_token_A"} -ContentType "application/json" -Body '{"message": "Hello agent!", "conversation_id": "test_chat"}' | Format-List
+
+```
+
+---
