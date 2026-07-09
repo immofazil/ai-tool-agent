@@ -386,54 +386,6 @@ Instead of leaving our endpoints wide open to the public web where anyone could 
 
 ---
 
-## Endpoint Contract
-
-### POST `/chat`
-
-Submits a user prompt to the isolated agent pipeline. This endpoint is fully protected and requires a valid security token passed inside the network header.
-
-#### Required Header
-
-```http
-Authorization: Bearer super_secret_token_A
-
-```
-
-#### Example Request
-
-```json
-{
-  "message": "Hello agent!",
-  "conversation_id": "test_chat"
-}
-
-```
-
-#### Example Response (Success Case)
-
-```json
-{
-  "answer": "Hello user_A, I securely received your message: Hello agent!",
-  "status": "success",
-  "trace": [
-    "Invoked secure agent pipeline"
-  ]
-}
-
-```
-
-#### Example Response (Handled Error Case)
-
-```json
-{
-  "error": "Not authenticated. Missing or invalid Authorization header.",
-  "status": "failed"
-}
-
-```
-
----
-
 ## How To Run the System
 
 To execute the secured system successfully, run the server using our new dedicated security entry point. The gateway will instantly spin up and manage all background protocol processes for you.
@@ -466,6 +418,62 @@ Once your second terminal window is open, you can send authorized requests to th
 
 ```powershell
 Invoke-RestMethod -Uri "http://localhost:8000/chat" -Method Post -Headers @{Authorization="Bearer super_secret_token_A"} -ContentType "application/json" -Body '{"message": "Hello agent!", "conversation_id": "test_chat"}' | Format-List
+
+```
+
+---
+
+# API Hardening and Rate Limiting (Week 6 - Part 2)
+
+## Project Overview
+
+This phase upgrades our authenticated API gateway into a resilient, production-ready defense system. Building directly on top of yesterday's authentication layer, this new iteration lives in a dedicated `src/hardened_api.py` file to preserve our previous checkpoints.
+
+Instead of just checking if a user has the right password, the system now actively defends itself against resource exhaustion and malformed payloads. By implementing strict rate limits, rigid input validation, and browser security policies, the API ensures that authorized users cannot accidentally (or intentionally) crash the server, drain the LLM budget, or inject massive text walls.
+
+---
+
+## Technical Enhancements & Guardrails
+
+* **Per-User Rate Limiting:** Engineered a time-based memory store that tracks request velocity mapped specifically to verified user IDs. The system throttles traffic exceeding 5 requests per minute, instantly returning a clean HTTP 429 Too Many Requests error to protect backend compute costs.
+* **Strict Input Validation:** Leveraged Pydantic to enforce rigid schema constraints before data ever reaches the agent. The gateway automatically rejects empty payloads and strictly caps message lengths at 500 characters, returning an HTTP 422 Unprocessable Entity error for malformed requests.
+* **CORS Configuration (Browser Prep):** Implemented Cross-Origin Resource Sharing (CORS) middleware to explicitly whitelist trusted web frontend origins (like `localhost:3000`). This ensures modern browsers will permit our future web dashboard to communicate with the backend while blocking unknown domains.
+* **Graceful Error Telemetry:** Upgraded our global exception handlers so that rate limits and input violations are intercepted internally. The system returns structured JSON errors to the client and logs secure, single-line warnings to the console without ever leaking chaotic Python stack traces.
+
+---
+
+## How To Run the System
+
+To execute the secured system successfully, you must run the server in one terminal and send your commands from another. The gateway will automatically manage the background protocol processes and defensive middleware.
+
+### Step 1: Install Dependencies
+
+Ensure you have the required web routing and security tools configured in your local environment workspace:
+
+```bash
+pip install fastapi uvicorn pydantic
+
+```
+
+### Step 2: Start the Hardened Service API Gateway
+
+Launch the application server directly using the Python module executor flag targeting our new hardened script:
+
+```bash
+python -m uvicorn src.hardened_api:app --host 0.0.0.0 --port 8000
+
+```
+
+Leave this first terminal window open and running. The server will boot instantly, activate its custom exception handlers and rate limiters, and begin listening for incoming traffic on port 8000.
+
+### Step 3: Send Requests from a Second Terminal
+
+Because the API server must remain actively running in your first terminal window to listen to network traffic, you need to open a brand new, completely separate PowerShell terminal window to execute your client commands.
+
+Once your second terminal window is open, you can send authorized requests to the running gateway using `curl.exe` (to ensure clean JSON error formatting without PowerShell's default red exceptions):
+
+```powershell
+curl.exe -X POST http://localhost:8000/chat -H "Authorization: Bearer super_secret_token_A" -H "Content-Type: application/json" -d "{\`"message\`": \`"Hello agent!\`", \`"conversation_id\`": \`"test_chat\`"}"
 
 ```
 
