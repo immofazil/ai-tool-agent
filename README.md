@@ -478,3 +478,71 @@ curl.exe -X POST http://localhost:8000/chat -H "Authorization: Bearer super_secr
 ```
 
 ---
+
+# Web Frontend Integration and Multi-Turn Tool Chat (Week 6 - Part 3)
+
+## Project Overview
+
+This phase successfully transitions our secure, hardened backend service into an accessible web product by introducing a dynamic user interface. Building directly on top of our previous architectural checkpoints, this implementation establishes a complete full-stack connection between a web browser client and our secured API gateway.
+
+Instead of hiding our AI agent behind a command-line terminal, the system now features an interactive chat dashboard. Users can easily pass security keys, send prompts, watch the agent trigger math tools dynamically, and track multi-turn conversation memory seamlessly inside a clean, modern visual environment.
+
+---
+
+## Technical Enhancements & Guardrails
+
+* **Browser-to-API Client Pipeline:** Developed an asynchronous communication engine using the native JavaScript `fetch` API. It securely passes headers across local network origins, dispatches user payloads, and paints incoming JSON answers to the browser viewport on the fly.
+* **Persistent Conversational Memory State:** Built a frontend memory engine that dynamically tracks a unique `conversation_id`. It continuously appends this identifier to every out-going payload, allowing the backend to review historical message logs and maintain context for follow-up questions.
+* **Asynchronous UX Loading Engine:** Engineered an active typing indicator that visually alerts users when the agent is computing logic or triggering tools in the background, locking down input boundaries to ensure users cannot distort request queues.
+* **Intelligent Error Mapping:** Wired up status checking logic inside the browser client that intercepts raw HTTP codes (like 401 Unauthorized, 422 Validation Faults, or 429 Throttling). It swaps out confusing network failures for highly readable, friendly alert banners.
+
+---
+
+## How To Run the System
+
+To launch the full-stack product, you must boot up both the backend API server and the frontend web server concurrently across separate terminal sessions. This separation satisfies modern browser security guidelines.
+
+### Step 1: Ensure Backend API Dependencies Are Installed
+
+Confirm your environment has all necessary modules for web routing, schemas, and security processing before running:
+
+```bash
+pip install fastapi uvicorn pydantic
+
+```
+
+### Step 2: Boot Up the Secure Backend API Gateway
+
+Open your first terminal window, enter your root project workspace, and start your unified backend server using the module flag:
+
+```bash
+python -m uvicorn src.backend_api:app --host 0.0.0.0 --port 8000
+
+```
+
+Keep this terminal window running. The server activates its lifespan protocols, initializes rate limits, configures explicit CORS permissions for `localhost:3000`, and listens for browser calls on port 8000.
+
+### Step 3: Launch the Frontend Web Server
+
+Because modern browsers enforce strict Cross-Origin Resource Sharing (CORS) rules, double-clicking your HTML file locally will cause connection blocks. You must serve your frontend files properly through a dedicated origin web server.
+
+Open a completely new, separate terminal window, navigate into your local frontend development directory, and spin up an independent Python local web instance:
+
+```bash
+cd frontend
+python -m http.server 3000
+
+```
+
+### Step 4: Open Your Web Browser
+
+With both terminal services running side by side, open any modern web browser and navigate directly to your local web deployment:
+
+```http
+http://localhost:3000
+
+```
+
+The graphical client interface will load immediately, letting you interact naturally with your secured agent while background validation, multi-turn tool logic, and defensive rate-limiting mechanisms execute invisibly behind the scenes.
+
+---
