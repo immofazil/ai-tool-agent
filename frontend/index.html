@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My AI Agent Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #chat-container {
+            width: 400px;
+            height: 600px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #chat-header {
+            background: #007bff;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        #messages {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .message {
+            max-width: 80%;
+            padding: 10px;
+            border-radius: 8px;
+            line-height: 1.4;
+        }
+        .user-msg {
+            background: #007bff;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 0;
+        }
+        .bot-msg {
+            background: #e9ecef;
+            color: black;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+        .error-msg {
+            background: #ffcccc;
+            color: #cc0000;
+            align-self: center;
+            font-size: 0.9em;
+            text-align: center;
+        }
+        #input-area {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+            background: #fff;
+        }
+        #user-input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            outline: none;
+        }
+        #send-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin-left: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #send-btn:hover {
+            background: #0056b3;
+        }
+        .loading {
+            font-style: italic;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+<div id="chat-container">
+    <div id="chat-header">Secure Agent Chat</div>
+    <div id="messages">
+        <div class="message bot-msg">Hello! I am your secure agent. How can I help you today?</div>
+    </div>
+    <div id="input-area">
+        <input type="text" id="user-input" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+        <button id="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script>
+    // Hardcoding the token is strictly for this local dev exercise!
+    const API_TOKEN = "super_secret_token_A";
+    const CONVERSATION_ID = "browser_chat_session_1"; 
+    const messagesDiv = document.getElementById('messages');
+    const inputField = document.getElementById('user-input');
+
+    function appendMessage(text, senderClass) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${senderClass}`;
+        msgDiv.textContent = text;
+        messagesDiv.appendChild(msgDiv);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        return msgDiv;
+    }
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            sendMessage();
+        }
+    }
+
+    async function sendMessage() {
+        const text = inputField.value.trim();
+        if (!text) return;
+
+        appendMessage(text, 'user-msg');
+        inputField.value = '';
+
+        const loadingMsg = appendMessage("Agent is thinking...", "bot-msg loading");
+
+        try {
+            const response = await fetch("http://localhost:8000/chat", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${API_TOKEN}`
+                },
+                body: JSON.stringify({
+                    message: text,
+                    conversation_id: CONVERSATION_ID
+                })
+            });
+
+            messagesDiv.removeChild(loadingMsg);
+
+            if (response.status === 429) {
+                appendMessage("Whoa there! You are sending messages too fast. Please wait a minute and try again.", "error-msg");
+                return;
+            } else if (response.status === 401) {
+                appendMessage("Authentication failed. Please check your login credentials.", "error-msg");
+                return;
+            } else if (response.status === 422) {
+                appendMessage("That message was either too long or invalid. Please keep it under 500 characters.", "error-msg");
+                return;
+            } else if (!response.ok) {
+                appendMessage("Something went wrong on the server. Please try again later.", "error-msg");
+                return;
+            }
+
+            const data = await response.json();
+            appendMessage(data.answer, 'bot-msg');
+
+        } catch (error) {
+            messagesDiv.removeChild(loadingMsg);
+            appendMessage("Network error. Could not connect to the server.", "error-msg");
+        }
+    }
+</script>
+
+</body>
+</html>
