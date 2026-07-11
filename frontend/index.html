@@ -63,6 +63,7 @@
             align-self: center;
             font-size: 0.9em;
             text-align: center;
+            border-radius: 5px;
         }
         #input-area {
             display: flex;
@@ -109,9 +110,16 @@
 </div>
 
 <script>
-    // Hardcoding the token is strictly for this local dev exercise!
+    // Configuration details for the active environment session
     const API_TOKEN = "super_secret_token_A";
     const CONVERSATION_ID = "browser_chat_session_1"; 
+    
+    // Fallback logic: If you host your backend on a separate Render Web Service URL, 
+    // replace window.location.origin with your actual backend URL string like: "https://your-backend.onrender.com"
+    const BACKEND_URL = window.location.origin.includes("localhost") 
+        ? "http://localhost:8000" 
+        : window.location.origin;
+
     const messagesDiv = document.getElementById('messages');
     const inputField = document.getElementById('user-input');
 
@@ -140,7 +148,7 @@
         const loadingMsg = appendMessage("Agent is thinking...", "bot-msg loading");
 
         try {
-            const response = await fetch("http://localhost:8000/chat", {
+            const response = await fetch(`${BACKEND_URL}/chat`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -172,7 +180,9 @@
             appendMessage(data.answer, 'bot-msg');
 
         } catch (error) {
-            messagesDiv.removeChild(loadingMsg);
+            if (messagesDiv.contains(loadingMsg)) {
+                messagesDiv.removeChild(loadingMsg);
+            }
             appendMessage("Network error. Could not connect to the server.", "error-msg");
         }
     }

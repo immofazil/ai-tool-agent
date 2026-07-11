@@ -49,7 +49,10 @@ app = FastAPI(title="Hardened MCP Agent API", lifespan=lifespan)
 # ==========================================
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"], 
+    allow_origins=[
+        "http://localhost:3000", 
+        "https://your-frontend-app-name.onrender.com" # Replace with your real frontend URL
+    ], 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
