@@ -117,8 +117,8 @@
     // Fallback logic: If you host your backend on a separate Render Web Service URL, 
     // replace window.location.origin with your actual backend URL string like: "https://your-backend.onrender.com"
     const BACKEND_URL = window.location.origin.includes("localhost") 
-        ? "http://localhost:8000" 
-        : window.location.origin;
+    ? "http://localhost:8000" 
+    : "https://ai-agent-backend-xyz.onrender.com";
 
     const messagesDiv = document.getElementById('messages');
     const inputField = document.getElementById('user-input');
