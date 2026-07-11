@@ -25,21 +25,40 @@ graph TD
 
 ## 📁 Repository Structure
 
-AI-TOOL-AGENT/
-├── docs/                   # System Documentation
-│   ├── deployment.md       # Cloud deployment instructions
-│   ├── mcp-client.md       # Agent orchestration logic
-│   ├── mcp-server.md       # Tool creation and exposure
-│   └── security.md         # Rate limiting and auth breakdown
-├── frontend/               # User Interface Layer
-│   └── index.html          # Chat UI and asynchronous fetch logic
-├── mcp/                    # Core Protocol & Tool Logic
-│   ├── mcp_agent.py        
-│   ├── mcp_client.py       
-│   └── mcp_server.py       
-└── server/                 # FastAPI Gateway Architecture
-    └── backend_api.py      # Main unified gateway server
+```
+AI TOOL AGENT (Project Root)
+├── docs/                  
+│   ├── auth.md
+│   ├── deployment.md
+│   ├── frontend.md
+│   ├── mcp-client.md
+│   ├── mcp-server.md
+│   ├── security.md
+│   ├── serving.md
+│   └── week4-agent.md
+├── frontend/              
+│   └── index.html
+├── mcp/                    
+│   ├── mcp_agent.py
+│   ├── mcp_client.py
+│   └── mcp_server.py
+├── server/                   
+│   ├── api.py
+│   ├── app-2.py
+│   ├── app-3.py
+│   ├── app-4.py
+│   ├── app.py
+│   ├── backend_api.py
+│   ├── hardened_api.py
+│   ├── new_server.py
+│   └── secure_api.py
+├── .env
+├── .gitignore
+├── notes.txt
+├── README.md
+└── requirements.txt
 
+```
 
 ## 💻 How to Run Locally
 
