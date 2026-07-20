@@ -1,0 +1,13 @@
+#Persistent Storage and State Management in Production AI Agents
+
+##Why In-Memory State Fails in Production
+Relying on in-memory data structures like standard Python dictionaries to hold conversation state creates an inherently fragile system. In-memory data is completely volatile. The moment a server restarts, crashes, or deploys a new code build, every active session and historical log is instantly wiped out. Furthermore, in-memory state prevents horizontal scaling. When expanding an API gateway across multiple server nodes or worker processes behind a load balancer, individual workers cannot access memory stored on neighboring instances. This leads to fragmented conversations and broken context whenever incoming requests are routed to a different process.
+
+##SQLite vs. Hosted Databases
+SQLite provides an ideal bridge between volatile local memory and complex cloud databases. Operating directly from a single local file, SQLite requires zero external server setup, no configuration overhead, and almost no maintenance while still providing full ACID compliance. This makes it perfect for fast local development, standalone deployments, and edge applications. However, applications eventually outgrow SQLite when reaching high concurrency thresholds. Because SQLite locks the entire database file during write operations, heavy traffic with frequent parallel write requests can lead to database contention, rendering host applications sluggish. At that stage, transitioning to a dedicated hosted database like PostgreSQL becomes essential for concurrent read-write scaling and centralized data management.
+
+##Conversation Data Model
+Store conversation messages in a schema keyed by both conversation_id and user_id to enforce multi-tenant security and prevent unauthorized cross-user access. Each row must store the exact role (user, assistant, or tool) along with an auto-incrementing ID or precise timestamp. Querying by user, session, and ascending ID guarantees loading history in correct chronological order.
+
+##Connection Handling Basics
+Opening and closing database connections carelessly on every incoming message introduces unnecessary overhead and risks resource exhaustion under heavy traffic. Best practices dictate using thread-safe connection pooling or managing single persistent connections per application process. Reads should utilize scoped index queries to quickly fetch historical context for specific users, while writes should execute within explicit transactions to ensure complete data integrity across multi-turn interactions
