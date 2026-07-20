@@ -110,13 +110,11 @@ Key Features & Test Coverage:
 --------------------
 ai-tool-agent/
 ├── server/
-│   ├── __init__.py          # Marks server as an importable package
 │   └── main.py              # FastAPI application & SQLite database logic
 ├── tests/
 │   └── test_main.py         # Pytest suite (7 critical path test cases)
 ├── agent_memory.db          # SQLite persistent database file
 ├── requirements.txt         # Project dependencies
-└── README.txt               # Documentation file
 
 
 3. PREREQUISITES & ENVIRONMENT SETUP
@@ -174,4 +172,70 @@ The test suite executes entirely offline in under two seconds.
 6. EXITING THE ENVIRONMENT
 --------------------------
 To deactivate the virtual environment:
+    deactivate
+
+
+
+Day 3
+
+========================================================================
+             FASTAPI AGENT OBSERVABILITY & MONITORING SYSTEM
+========================================================================
+
+1. PROJECT OVERVIEW
+-------------------
+This project implements a modular observability, telemetry, and code-level
+error handling system for a FastAPI-based AI agent. It tracks live request
+traffic, latency, and error counts via middleware while exposing dedicated 
+health check and telemetry endpoints.
+
+
+2. PROJECT STRUCTURE
+--------------------
+ai-tool-agent/
+├── server/
+│   ├── route_main.py         # Application entry point & error handling
+│   └── routes.py             # Observability routes (/health, /metrics)
+├── requirements.txt          # Today's project dependencies
+
+
+3. ENVIRONMENT SETUP
+--------------------
+Step 1: Open the project root directory in your terminal or VS Code.
+
+Step 2: Create a virtual environment:
+    python -m venv venv
+
+Step 3: Activate the virtual environment:
+    - Windows PowerShell:
+        .\venv\Scripts\Activate.ps1
+    - macOS / Linux:
+        source venv/bin/activate
+
+Step 4: Install today's required dependencies:
+    pip install -r requirements.txt
+
+
+4. HOW TO RUN & TEST THE APPLICATION
+-------------------------------------
+1. Start the Uvicorn ASGI server:
+    python -m uvicorn server.route_main:app --reload
+
+2. Test the Health Endpoint:
+    Invoke-RestMethod -Uri "http://127.0.0.1:8000/health"
+
+3. Test the Metrics Telemetry Endpoint:
+    Invoke-RestMethod -Uri "http://127.0.0.1:8000/metrics"
+
+4. Test Code-Level Error Handling (Structured JSON Output):
+    try { 
+        Invoke-WebRequest -Uri "http://127.0.0.1:8000/chat" -Method Post -ContentType "application/json" -Body '{"conversation_id": "session_103", "message": "trigger_error"}' 
+    } catch { 
+        $_.ErrorDetails.Message 
+    }
+
+
+5. DEACTIVATING THE ENVIRONMENT
+--------------------------------
+When finished, deactivate the virtual environment:
     deactivate
