@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from server.main import app, rate_limit_store
+import uuid
 
 client = TestClient(app)
 
@@ -94,21 +95,22 @@ def test_chat_rate_limit_429():
     assert blocked_response.json()["status"] == "failed"
 
 
-# ==========================================
-# PERSISTENCE TEST (Database State)
-# ==========================================
+
 
 def test_conversation_persistence():
     """Protects data integrity by verifying SQLite state persistence across calls."""
-    unique_conv = {"message": "First message", "conversation_id": "persistence_test_session"}
+    # Generate a unique ID so old test data never interferes
+    unique_session_id = f"test_session_{uuid.uuid4().hex}"
+    
+    unique_conv = {"message": "First message", "conversation_id": unique_session_id}
     
     # 1. First interaction: history count should be 0
     first_res = client.post("/chat", headers=VALID_HEADERS, json=unique_conv)
     assert first_res.status_code == 200
     assert first_res.json()["history_turns_loaded"] == 0
 
-    # 2. Second interaction with same conversation_id: history count should be 2 (1 user + 1 model turn)
-    second_payload = {"message": "Second message", "conversation_id": "persistence_test_session"}
+    # 2. Second interaction with same conversation_id: history count should be 2
+    second_payload = {"message": "Second message", "conversation_id": unique_session_id}
     second_res = client.post("/chat", headers=VALID_HEADERS, json=second_payload)
     
     assert second_res.status_code == 200
