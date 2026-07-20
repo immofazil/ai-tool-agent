@@ -85,3 +85,93 @@ TERMINAL 2: CLIENT TERMINAL (Sending Requests)
 To stop the server in Terminal 1: Press CTRL+C.
 To deactivate the virtual environment in either terminal:
     deactivate
+
+
+Day 2
+
+FASTAPI AGENT AUTOMATED TESTING SUITE (PYTEST)
+
+1. PROJECT OVERVIEW
+-------------------
+This project implements an automated, fast, zero-cost test suite using Pytest and 
+FastAPI's TestClient for a hardened AI agent backend. The primary goal is to ensure 
+system reliability, data security, rate limits, and persistence across critical application 
+paths without incurring live LLM API costs.
+
+Key Features & Test Coverage:
+- Schema Guardrails: Validates input parameters and boundary limits via Pydantic.
+- API Authentication: Enforces Bearer token security and 401 Unauthorized handling.
+- Rate Limiting: Enforces sliding-window rate limit checks and 429 Too Many Requests responses.
+- SQLite Persistence: Verifies sequential conversation turn storage and context reloading.
+- Isolated Execution: Mocks LLM responses and resets state via Pytest fixtures for offline execution.
+
+
+2. PROJECT STRUCTURE
+--------------------
+ai-tool-agent/
+├── server/
+│   ├── __init__.py          # Marks server as an importable package
+│   └── main.py              # FastAPI application & SQLite database logic
+├── tests/
+│   └── test_main.py         # Pytest suite (7 critical path test cases)
+├── agent_memory.db          # SQLite persistent database file
+├── requirements.txt         # Project dependencies
+└── README.txt               # Documentation file
+
+
+3. PREREQUISITES & ENVIRONMENT SETUP
+------------------------------------
+Ensure Python 3.10 or higher is installed on your machine.
+
+Step 1: Open the project root directory in your terminal or VS Code.
+
+Step 2: Create a virtual environment (if not already created):
+    python -m venv venv
+
+Step 3: Activate the virtual environment:
+    - On Windows (PowerShell):
+        .\venv\Scripts\Activate.ps1
+    - On macOS/Linux:
+        source venv/bin/activate
+
+Step 4: Install required dependencies:
+    pip install fastapi uvicorn pydantic pytest httpx
+
+
+4. HOW TO RUN THE AUTOMATED TEST SUITE
+--------------------------------------
+The test suite executes entirely offline in under two seconds.
+
+1. Ensure your virtual environment is active:
+    .\venv\Scripts\Activate.ps1
+
+2. Run pytest from the project root directory:
+    python -m pytest tests/ -v
+
+3. Expected Output:
+    tests/test_main.py::test_tool_argument_validation PASSED
+    tests/test_main.py::test_max_iteration_guardrail PASSED
+    tests/test_main.py::test_malformed_llm_response PASSED
+    tests/test_main.py::test_chat_authenticated_success PASSED
+    tests/test_main.py::test_chat_missing_credentials_401 PASSED
+    tests/test_main.py::test_chat_rate_limit_429 PASSED
+    tests/test_main.py::test_conversation_persistence PASSED
+
+    ======== 7 passed in < 2.00s ========
+
+
+5. SUMMARY OF TEST PROTECTIONS
+------------------------------
+- test_tool_argument_validation: Protects against malformed payloads by asserting 422 errors when required fields are missing.
+- test_max_iteration_guardrail: Protects system boundaries by rejecting messages exceeding 500 characters with a 422 error.
+- test_malformed_llm_response: Protects against empty input payloads, enforcing non-empty string validation.
+- test_chat_authenticated_success: Protects the primary API route by confirming valid Bearer tokens return 200 OK responses.
+- test_chat_missing_credentials_401: Protects API routes from unauthorized access by asserting 401 status on unauthenticated calls.
+- test_chat_rate_limit_429: Protects against spam by blocking requests beyond 5 per minute with a 429 Too Many Requests response.
+- test_conversation_persistence: Protects memory state by verifying turn history is correctly saved and loaded from SQLite.
+
+
+6. EXITING THE ENVIRONMENT
+--------------------------
+To deactivate the virtual environment:
+    deactivate
