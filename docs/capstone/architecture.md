@@ -13,10 +13,13 @@ src/
 ├── client/
 │   ├── index.html
 │   └── app.js
-└── server/
-    ├── database.py
-    ├── main.py
-    └── mcp_tools.py
+|── server/
+|   ├── database.py
+|   ├── main.py
+|   └── mcp_tools.py
+└── tests/
+    └── test_gateway.py
+
 
 
 ## Architectural Layers
@@ -36,4 +39,7 @@ This layer houses external capabilities such as weather lookups, calculators, an
 ### 5. Persistent Memory Layer (`src/server/database.py`)
 Conversation history is saved using a local SQLite database (`agent_memory.db`) to preserve state across multi-turn sessions. Every stored message is linked to a specific user ID and conversation ID to ensure privacy and data isolation. This persistence guarantees that chat context survives server restarts and crashes.
 
+### 6. Automated Test Suite (`src/server/tests/test_gateway.py`)
+
+Built with `pytest` and FastAPI's `TestClient`, this suite executes seven automated tests to validate core backend capabilities without needing a live server. It verifies health checks, Bearer auth guardrails, single and multi-tool routing, rate-limiting enforcement, and telemetry metrics.
 ---

@@ -17,6 +17,8 @@ ai-tool-agent/
 │   │   ├── database.py       # SQLite persistence (session memory & history)
 │   │   ├── mcp_tools.py      # Tool execution router (Weather, Calculator, DB Lookup)
 │   │   └── main.py           # FastAPI entrypoint, middleware, security, & routes
+│   ├── tests/
+│   │   ├── test_gateway.py   # Tests the gateway
 │   └── client/
 │       ├── index.html        # Clean HTML5 chat client interface
 │       └── app.js            # Frontend logic (Fetch API, DOM rendering, state handling)
