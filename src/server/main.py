@@ -6,8 +6,8 @@ from pydantic import BaseModel, Field
 import time
 import json
 import logging
-from src.server.database import init_db, save_message, get_history
-from src.server.mcp_tools import execute_mcp_tool
+from database import init_db, save_message, get_history
+from mcp_tools import execute_mcp_tool as execute_tool
 
 # Setup Structured JSON Logging
 logging.basicConfig(level=logging.INFO)
@@ -108,33 +108,47 @@ async def agent_chat_endpoint(req: ChatRequest, token: str = Depends(verify_toke
     history = get_history(req.session_id)
     
     msg_lower = req.message.lower()
-    tool_used = None
+    tools_used = []
+    responses = []
     
+    # Check Weather Intent
     if "weather" in msg_lower:
-        tool_used = "get_weather"
-        query_location = req.message.replace("weather", "").strip() or "Dubai"
-        tool_output = execute_mcp_tool(tool_used, query_location)
-        metrics["tools_executed"] += 1
-        agent_response = f"I invoked the MCP Weather Tool. {tool_output}"
+        tool_name = "get_weather"
+        tools_used.append(tool_name)
         
-    elif "calc" in msg_lower or "math" in msg_lower or any(op in msg_lower for op in ["+", "*", "/"]):
-        tool_used = "calculator"
+        # Simple & safe location extraction
+        query_location = "Tokyo" if "tokyo" in msg_lower else "Dubai"
+        
+        tool_output = execute_tool(tool_name, query_location)
+        metrics["tools_executed"] += 1
+        responses.append(f"MCP Weather Tool: {tool_output}")
+        
+    # Check Math Intent
+    if "calc" in msg_lower or "math" in msg_lower or any(op in msg_lower for op in ["+", "*", "/"]):
+        tool_name = "calculator"
+        tools_used.append(tool_name)
+        
         expr = "".join([c for c in req.message if c in "0123456789+-*/.()"])
-        tool_output = execute_mcp_tool(tool_used, expr)
+        tool_output = execute_tool(tool_name, expr)
         metrics["tools_executed"] += 1
-        agent_response = f"I invoked the MCP Calculator Tool. {tool_output}"
+        responses.append(f"MCP Calculator Tool: {tool_output}")
         
+    # Format Agent Output
+    if responses:
+        agent_response = " | ".join(responses)
     else:
         agent_response = f"Processed query: '{req.message}'. Total active history depth: {len(history)} messages."
 
     save_message(req.session_id, "assistant", agent_response)
-    log_json("INFO", "chat_processed", session_id=req.session_id, tool_executed=tool_used)
+    
+    tool_label = ", ".join(tools_used) if tools_used else None
+    log_json("INFO", "chat_processed", session_id=req.session_id, tool_executed=tool_label)
     
     return {
         "status": "success",
         "session_id": req.session_id,
         "response": agent_response,
-        "tool_executed": tool_used,
+        "tool_executed": tool_label,
         "history_count": len(history)
     }
 
