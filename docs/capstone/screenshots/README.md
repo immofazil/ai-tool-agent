@@ -9,7 +9,6 @@ An end-to-end, production-ready **AI Agent Gateway** built with FastAPI, impleme
 
 * **Frontend UI (Hugging Face Static Space)**: [https://huggingface.co/spaces/immofazil/ai-agent-gateway](https://huggingface.co/spaces/immofazil/ai-agent-gateway)
 * **Backend API (Render Web Service)**: [https://ai-tool-agent.onrender.com](https://ai-tool-agent.onrender.com)
-* **Interactive API Documentation**: [https://ai-tool-agent.onrender.com/docs](https://ai-tool-agent.onrender.com/docs)
 
 ---
 
