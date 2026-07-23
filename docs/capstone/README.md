@@ -1,7 +1,3 @@
-Here is your complete, fully integrated **`docs/capstone/README.md`** file. It combines all of your weekly progress, architectural diagrams, engineering decisions, evidence references, and your 8-week learning reflection into one smooth, humanized narrative.
-
----
-
 # AI Agent Gateway: Capstone Case Study
 
 An end-to-end, decoupled AI Agent system that bridges a user-facing chat application with specialized execution tools. Built with FastAPI, static web web technologies, and the Model Context Protocol (MCP), this system implements Bearer authentication, rate limiting, persistence, and telemetry observability.
@@ -120,7 +116,7 @@ Every technical choice in this project balances functionality, security, and dev
 
 ### System Architecture Diagram
 
-Below is the complete architectural layout showing how requests pass through authentication, rate limiting, orchestration, tool selection, and database persistence:
+Below is the complete architectural layout showing how requests pass through authentication, rate limiting, orchestration, tool selection, and database persistence: ![System Architecture](Architecture.png)
 
 ### Live Deployment Links
 
