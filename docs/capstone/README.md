@@ -117,6 +117,7 @@ Every technical choice in this project balances functionality, security, and dev
 ### System Architecture Diagram
 
 Below is the complete architectural layout showing how requests pass through authentication, rate limiting, orchestration, tool selection, and database persistence: 
+
 ![System Architecture](Architecture.png)
 
 ### Live Deployment Links
