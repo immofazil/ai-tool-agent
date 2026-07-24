@@ -1,130 +1,136 @@
-# Secure AI Tool Agent: Full-Stack MCP Architecture
+# AI Agent Gateway
 
-### 🌐 Live Deployment
-**Live Demo:** 
+An enterprise-ready, production-ready AI Agent Gateway built with FastAPI. It connects a web frontend to dynamic Model Context Protocol (MCP) tools through strict security guardrails, including Bearer Token authentication, sliding-window rate limiting, session persistence, and system telemetry observability.
 
-## 🚀 What It Is
-This project is a production-ready, full-stack AI agent application. It connects a responsive web frontend to a secure, rate-limited FastAPI backend gateway. 
+---
 
-Instead of hardcoding functions directly into the agent, the backend orchestrates an external **Model Context Protocol (MCP)** tool server. This architecture allows the LLM to dynamically discover, select, and execute external Python operations (like complex math calculations) safely inside a sandboxed environment while maintaining multi-turn conversational memory.
+## 🌐 Quick Links & Documentation
 
-## 🏗️ Architecture Diagram
+* **Live Frontend UI (Hugging Face)**: [https://huggingface.co/spaces/immofazil/ai-agent-gateway](https://huggingface.co/spaces/immofazil/ai-agent-gateway)
+* **Live Backend API (Render)**: [https://ai-tool-agent.onrender.com](https://ai-tool-agent.onrender.com)
+* **Capstone Case Study**: [https://github.com/immofazil/ai-tool-agent/blob/main/docs/capstone/README.md](https://github.com/immofazil/ai-tool-agent/blob/main/docs/capstone/README.md)
 
-graph TD
-    A[Web Browser / Frontend] -->|HTTPS POST + Auth Token| B[FastAPI Gateway]
-    B -->|Rate Limit & Validation| C[Agent Orchestrator]
-    C -->|Context & Prompts| D[LLM Brain]
-    C -->|MCP Client Handshake| E[MCP Tool Server]
-    E -->|Executes Python Tools| F[Local Compute]
-    F -->|Results| E
-    E -->|JSON Response| C
-    C -->|Final Answer| B
-    B -->|JSON Payload| A
+---
+
+## 🏗️ System Architecture
+
+The gateway uses a split-architecture design separating UI, API orchestration, tool execution, and storage layers:
+
+```text
+[ Frontend UI (Static Space) ] 
+              |
+              v (HTTP + Bearer Token)
+[ API Gateway (FastAPI Guardrails: Auth & Rate Limiter) ]
+              |
+              v
+   [ Agent Orchestrator ]
+        /            \
+       v              v
+[ MCP Tool Suite ]  [ SQLite Persistence ]
+
+```
+
+1. **Frontend Layer**: A lightweight HTML5 and JavaScript web application hosted on Hugging Face Spaces.
+2. **API Gateway**: An asynchronous FastAPI service deployed on Render with Bearer Auth (`capstone-secret-token`) and a 5 requests per minute sliding-window rate limiter.
+3. **MCP Tool Suite**: Standardized tool registry executing math operations and weather queries.
+4. **Storage & Observability**: Local SQLite database for message persistence, plus a `/metrics` telemetry endpoint tracking API traffic and tool calls.
 
 ---
 
 ## 📁 Repository Structure
 
-```
-AI TOOL AGENT (Project Root)
-├── docs/                  
-│   ├── auth.md
-│   ├── deployment.md
-│   ├── frontend.md
-│   ├── mcp-client.md
-│   ├── mcp-server.md
-│   ├── security.md
-│   ├── serving.md
-│   └── week4-agent.md
-├── frontend/              
-│   └── index.html
-├── mcp/                    
-│   ├── mcp_agent.py
-│   ├── mcp_client.py
-│   └── mcp_server.py
-├── server/                   
-│   ├── api.py
-│   ├── app-2.py
-│   ├── app-3.py
-│   ├── app-4.py
-│   ├── app.py
-│   ├── backend_api.py
-│   ├── hardened_api.py
-│   ├── new_server.py
-│   └── secure_api.py
-├── .env
-├── .gitignore
-├── notes.txt
-├── README.md
-└── requirements.txt
+```text
+AI TOOL AGENT
+├── .env.example            # Environment configuration template
+├── README.md               # Root repository documentation
+└── requirements.txt        # Python dependencies
+├── docs/                   # Documentation and resources for learning this project
+│   └── capstone/           # Capstone case study materials
+│       ├── screenshots/    # Evidence screenshots (Auth, Rate Limit, Tests, UI)
+│       └── README.md       # Full 8-Week Capstone Case Study
+├── frontend/               # Experimental folder (early learning, sandbox, and frontend testing)
+├── mcp/                    # Experimental folder (early learning, sandbox, and MCP protocol testing)
+├── server/                 # Experimental folder (early learning, sandbox, and backend testing)
+└── src/                    # Primary Production Source Code
+    ├── client/             # Production UI web application
+    │   ├── app.js          # Web client logic and API requests
+    │   └── index.html      # User interface
+    └── server/             # Production FastAPI Backend Service
+        ├── tests/
+        │   └── test_gateway.py  # 7-part Pytest verification suite
+        ├── agent_memory.db     # SQLite session database
+        ├── database.py         # Database connection & models
+        ├── main.py             # FastAPI entry point & guardrail middleware
+        └── mcp_tools.py        # MCP tool definitions & execution registry
 
 ```
 
-## 💻 How to Run Locally
+---
 
-To run this full-stack application on your own machine, you must boot the backend and frontend concurrently in two separate terminal windows.
+## ⚙️ Environment Configuration
 
-### 1. Install Dependencies
+Although internal MCP tools do not require external third-party API keys to execute, the server uses standard environment configuration settings.
 
-Ensure you have the required Python packages installed:
+A template file named `.env.example` is provided at the root:
+
+```env
+# Server Configuration
+PORT=8000
+DATABASE_URL=sqlite:///agent_memory.db
+
+# Guardrail Tokens
+API_BEARER_TOKEN=capstone-secret-token
+
+```
+
+---
+
+## 🚀 Local Development & Setup
+
+### Prerequisites
+
+* Python 3.10+
+* Virtual Environment (`venv`)
+
+### 1. Install & Run Backend Server
+
+Navigate to the server directory, install dependencies, and run the FastAPI server using Uvicorn:
 
 ```bash
-pip install fastapi uvicorn pydantic
+# Navigate to server directory
+cd src/server
+
+# Install Python packages
+pip install -r requirements.txt
+
+# Launch FastAPI backend with Uvicorn
+uvicorn main:app --reload --host 127.0.0.1 --port 8000
 
 ```
 
-### 2. Start the Backend API Gateway (Terminal 1)
+The API will now be accessible at `[http://127.0.0.1:8000](http://127.0.0.1:8000)`. You can test endpoints via the interactive Swagger documentation at `[http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)`.
 
-Boot the Uvicorn server, which automatically initializes rate limiters, CORS middleware, and custom exception handlers.
+### 2. Run Automated Pytest Suite
+
+To verify authentication, rate limiting, tool execution, session state, and metric logging:
 
 ```bash
-python -m uvicorn server.backend_api:app --host 0.0.0.0 --port 8000
+# Run pytest from src/server directory
+pytest tests/test_gateway.py -v
 
 ```
 
-### 3. Start the Frontend Server (Terminal 2)
+### 3. Run Frontend Web Client
 
-Open a new terminal window to serve the static frontend assets.
+Open `src/client/index.html` directly in any web browser, or serve it locally:
 
 ```bash
-cd frontend
+# Navigate to client directory
+cd src/client
+
+# Serve statically via Python
 python -m http.server 3000
 
 ```
 
-Access the application dashboard by opening your web browser to `http://localhost:3000`.
-
-## 🔒 Authentication
-
-The API is secured behind a Bearer Token authorization layer. Any request missing a valid token, or providing an incorrect one, will be immediately rejected with an HTTP `401 Unauthorized` status.
-
-* **Valid Test Tokens:** `super_secret_token_A` or `super_secret_token_B`
-* **Header Format:** `Authorization: Bearer <token>`
-
-## 📡 Protected API Endpoints
-
-### `POST /chat`
-
-The primary gateway for interacting with the MCP agent.
-
-* **Rate Limits:** Enforces a maximum velocity of 5 requests per minute per user. Exceeding this limit returns a `429 Too Many Requests` error.
-* **Input Constraints:** Enforces strict strict schema validation. Messages must be strings between 1 and 500 characters. Violations return a `422 Unprocessable Entity` error.
-
-**Example Request Payload:**
-
-```json
-{
-  "message": "calculate 95-20",
-  "conversation_id": "session_xyz_123"
-}
-
-```
-
-**Example Response Payload:**
-
-```json
-{
-  "answer": "I triggered my calculator tool! The answer to 95 - 20 is 75.",
-  "status": "success",
-  "trace": ["Invoked secure agent pipeline"]
-}
+Then visit `http://localhost:3000` in your web browser.
